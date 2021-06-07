@@ -107,7 +107,7 @@ def get_page_amount(url):
 def get_name(url):
     response = get(url).text
     soup = BeautifulSoup(response, 'html.parser')
-    name = soup.find('span', class_='brand-and-name').text
+    name = soup.find('div', class_='brand-and-name').text
     return name
 
 
@@ -139,7 +139,7 @@ def run_parser(url, save_option):
         table_name = create_table()
         table_flag = True
     page_amount = get_page_amount(url)
-    for i in range(1, 1 + 1):
+    for i in range(1, page_amount + 1):
         if table_flag:
             parse_page(url, i, save_option, table_name)
         else:
