@@ -57,21 +57,29 @@ def get_lower_price(element):
     price = element.find('ins', class_='lower-price')
     if price is None:
         price = element.find('span', class_='lower-price')
-    return space_delete(price.text)
+    price = space_delete(price.text)
+    price = price.split()
+    price = ''.join(price[:len(price)-1])
+    return price
 
 
 def get_sale_percentage(element):
     sale = element.find('span', class_='price-sale active')
     if sale is None:
-        return '0%'
-    return space_delete(sale.text)
+        return '0'
+    sale = space_delete(sale.text)
+    return sale[1:len(sale)-1]
 
 
 def get_non_sale_price(element):
     non_sale_price = element.find('span', class_='price-old-block')
     if non_sale_price is None:
-        return get_lower_price(element)
-    return space_delete(non_sale_price.find('del').text)
+        non_sale_price = get_lower_price(element)
+    else:
+        non_sale_price = space_delete(non_sale_price.find('del').text)
+        non_sale_price = non_sale_price.split()
+        non_sale_price = ''.join(non_sale_price[:len(non_sale_price)-1])
+    return non_sale_price
 
 
 def get_rating(element):
@@ -117,7 +125,11 @@ def save_row(row, table_name, save_option):
 
 
 def parse_page(base_url, current_page_number, save_option, table_name=''):
-    url = base_url + f'&page={current_page_number}'
+    if base_url.find('?') == -1:
+        base_url += '?'
+    else:
+        base_url += '&'
+    url = base_url + f'page={current_page_number}'
     print(url)
     elements = get_elements(url)
     for i in range(len(elements)):
@@ -144,7 +156,8 @@ def run_parser(url, save_option):
             parse_page(url, i, save_option, table_name)
         else:
             parse_page(url, i, save_option)
+    input('Нажмите enter для выхода: ')
 
 
-run_parser('https://www.wildberries.ru/catalog/0/search.aspx?search=%D0%B0%D0%BD%D0%B8%D0%BC%D0%B5&xsearch=true',
+run_parser('https://www.wildberries.ru/brands/ayris-press',
            save_options['.db'])
