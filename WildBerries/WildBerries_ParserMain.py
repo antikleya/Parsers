@@ -9,7 +9,7 @@ def db_save(row, table_name):
     connection = sqlite3.connect('../ParsingResults.db')
     cursor = connection.cursor()
     cursor.execute(f"INSERT or REPLACE INTO {table_name} VALUES (?,?,?,?,?,?,?,?)",
-                   (row['brand'] + row['name'], row['lower_price'], row['sale_percentage'], row['non_sale_price'],
+                   (row['name'], row['non_sale_price'], row['sale_percentage'], row['lower_price'],
                     row['popularity'], row['rating'], row['review_amount'], row['article']))
     connection.commit()
     connection.close()
@@ -81,11 +81,6 @@ def get_rating(element):
     return rating['class'][-1][-1]
 
 
-def get_brand(element):
-    brand = element.find('strong', class_='brand-name')
-    return brand.text
-
-
 def get_review_amount(element):
     review_amount = element.find('span', class_='dtList-comments-count')
     if review_amount is None:
@@ -112,7 +107,7 @@ def get_page_amount(url):
 def get_name(url):
     response = get(url).text
     soup = BeautifulSoup(response, 'html.parser')
-    name = soup.find('span', class_='name').text
+    name = soup.find('span', class_='brand-and-name').text
     return name
 
 
@@ -129,11 +124,10 @@ def parse_page(base_url, current_page_number, save_option, table_name=''):
         row = {'lower_price': get_lower_price(elements[i]),
                'non_sale_price': get_non_sale_price(elements[i]),
                'rating': get_rating(elements[i]),
-               'brand': get_brand(elements[i]),
                'sale_percentage': get_sale_percentage(elements[i]),
                'review_amount': get_review_amount(elements[i]),
                'article': get_article(elements[i]),
-               'popularity': i + 100 * (current_page_number - 1)}
+               'popularity': i + 1 + 100 * (current_page_number - 1)}
         product_url = f'https://www.wildberries.ru/catalog/{row["article"]}/detail.aspx'
         row['name'] = get_name(product_url)
         save(row, table_name, save_option)
@@ -145,7 +139,7 @@ def run_parser(url, save_option):
         table_name = create_table()
         table_flag = True
     page_amount = get_page_amount(url)
-    for i in range(1, page_amount + 1):
+    for i in range(1, 1 + 1):
         if table_flag:
             parse_page(url, i, save_option, table_name)
         else:
