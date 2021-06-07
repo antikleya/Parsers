@@ -11,6 +11,8 @@ def db_save(row, table_name):
     cursor.execute(f"INSERT or REPLACE INTO {table_name} VALUES (?,?,?,?,?,?,?,?)",
                    (row['brand'] + row['name'], row['lower_price'], row['sale_percentage'], row['non_sale_price'],
                     row['popularity'], row['rating'], row['review_amount'], row['article']))
+    connection.commit()
+    connection.close()
 
 
 save_options = {'.db': db_save}
