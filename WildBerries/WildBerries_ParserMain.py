@@ -111,7 +111,7 @@ def get_name(url):
     return name
 
 
-def save(row, table_name, save_option):
+def save_row(row, table_name, save_option):
     if save_option == save_options['.db']:
         save_option(row, table_name)
 
@@ -130,7 +130,7 @@ def parse_page(base_url, current_page_number, save_option, table_name=''):
                'popularity': i + 1 + 100 * (current_page_number - 1)}
         product_url = f'https://www.wildberries.ru/catalog/{row["article"]}/detail.aspx'
         row['name'] = get_name(product_url)
-        save(row, table_name, save_option)
+        save_row(row, table_name, save_option)
 
 
 def run_parser(url, save_option):
