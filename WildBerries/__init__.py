@@ -1,2 +1,5 @@
 from .WildBerries_ParserMain import get_elements
 from .WildBerries_ParserMain import get_name
+from .WildBerries_ParserMain import get_lower_price
+from .WildBerries_ParserMain import get_non_sale_price
+from .WildBerries_ParserMain import get_sale_percentage
