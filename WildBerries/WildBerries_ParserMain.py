@@ -3,6 +3,7 @@ import sqlite3
 from bs4 import BeautifulSoup
 from requests import get
 from datetime import datetime
+from static import space_delete
 
 
 def db_save(row, table_name):
@@ -47,12 +48,6 @@ def get_elements(url):
     soup = BeautifulSoup(response, 'html.parser')
     elements = soup.find_all('a', class_='ref_goods_n_p j-open-full-product-card')
     return elements
-
-
-def space_delete(inp):
-    if inp[0] == ' ':
-        return inp[1:]
-    return inp
 
 
 def get_lower_price(element):
@@ -173,5 +168,5 @@ def run_parser(url, save_option):
     input('Нажмите enter для выхода: ')
 
 
-run_parser('https://www.wildberries.ru/brands/ayris-press',
-           save_options['.db'])
+if __name__ == '__main__':
+    run_parser('https://www.wildberries.ru/brands/ayris-press', save_options['.db'])

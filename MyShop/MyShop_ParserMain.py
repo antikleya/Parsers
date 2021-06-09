@@ -10,9 +10,9 @@ temp_url = 'https://my-shop.ru/shop/producer/149/sort/b/page/'
 def db_save(row, table_name):
     connection = sqlite3.connect('../ParsingResults.db')
     cursor = connection.cursor()
-    cursor.execute(f"INSERT or REPLACE INTO {table_name} VALUES (?,?,?,?,?,?,?,?,?)",
+    cursor.execute(f"INSERT or REPLACE INTO {table_name} VALUES (?,?,?,?,?,?,?,?,?,?)",
                    (row['brand'], row['name'], row['series'], row['non_sale_price'], row['sale_percentage'],
-                    row['lower_price'], row['popularity'], row['image_src'], row['article']))
+                    row['lower_price'], row['popularity'], row['image_src'], row['article'], row['ISBN']))
     connection.commit()
     connection.close()
 
@@ -35,7 +35,8 @@ def create_table():
             Популярность           STRING, 
             Тамбнейл               STRING,
             Артикул                STRING UNIQUE
-                                          NOT NULL
+                                          NOT NULL,
+            ISBN                   STRING
         );
         """)
     connection.commit()
@@ -86,11 +87,17 @@ def get_json_data(url):
     return json_data['response']
 
 
-def get_series(url):
-    json_data = get_json_data(url)
+def get_series(json_data):
     for i in json_data['product']['about']:
         if i['name'] == 'серия':
             return i['value']
+    return ''
+
+
+def get_isbn(json_data):
+    for characteristic in json_data['product']['characteristics']:
+        if characteristic['name'] == 'ISBN':
+            return characteristic['value']
     return ''
 
 
@@ -127,13 +134,15 @@ def get_product_info(product, current_page_number, product_position):
            'name': get_name(product),
            'popularity': product_position + 1 + 36 * (current_page_number - 1)}
     product_url = f"https://my-shop.ru/shop/product/{row['article']}.html"
-    row['series'] = get_series(product_url)
+    json_data = get_json_data(product_url)
+    row['series'] = get_series(json_data)
+    row['ISBN'] = get_isbn(json_data)
     return row
 
 
 def parse_page(base_url, current_page_number, save_option, table_name=''):
     page_url = get_url(base_url, current_page_number)
-    print(url)
+    print(page_url)
     json_data = get_json_data(page_url)
     for i in range(len(json_data['products'])):
         row = get_product_info(json_data['products'][i], current_page_number, i)
@@ -154,4 +163,5 @@ def run_parser(url, save_option):
     input('Нажмите enter для выхода: ')
 
 
-run_parser(temp_url, save_options['.db'])
+if __name__ == '__main__':
+    run_parser(temp_url, save_options['.db'])
