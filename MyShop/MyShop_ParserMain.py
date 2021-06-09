@@ -1,47 +1,10 @@
 from bs4 import BeautifulSoup
 import requests
-import sqlite3
 import json
-from datetime import datetime
+from core import save_row, save_options, create_table
+from settings import myshop_table_structure
 
 temp_url = 'https://my-shop.ru/shop/producer/149/sort/b/page/'
-
-
-def db_save(row, table_name):
-    connection = sqlite3.connect('../ParsingResults.db')
-    cursor = connection.cursor()
-    cursor.execute(f"INSERT or REPLACE INTO {table_name} VALUES (?,?,?,?,?,?,?,?,?,?)",
-                   (row['brand'], row['name'], row['series'], row['non_sale_price'], row['sale_percentage'],
-                    row['lower_price'], row['popularity'], row['image_src'], row['article'], row['ISBN']))
-    connection.commit()
-    connection.close()
-
-
-save_options = {'.db': db_save}
-
-
-def create_table():
-    date = datetime.today().strftime('%d_%m_%Y_%H_%M')
-    table_name = f'MyShop_{date}'
-    connection = sqlite3.connect('../ParsingResults.db')
-    cursor = connection.cursor()
-    cursor.execute(f"""CREATE TABLE {table_name} (
-            Брэнд                  STRING,
-            Название               STRING,
-            Серия                  STRING,
-            Цена                   STRING,
-            Скидка                 STRING,
-            Итого                  STRING,
-            Популярность           STRING, 
-            Тамбнейл               STRING,
-            Артикул                STRING UNIQUE
-                                          NOT NULL,
-            ISBN                   STRING
-        );
-        """)
-    connection.commit()
-    connection.close()
-    return table_name
 
 
 def get_lower_price(product):
@@ -119,24 +82,21 @@ def get_article(product):
     return str(article)
 
 
-def save_row(row, table_name, save_option):
-    if save_option == save_options['.db']:
-        save_option(row, table_name)
-
-
 def get_product_info(product, current_page_number, product_position):
-    row = {'lower_price': get_lower_price(product),
-           'sale_percentage': get_sale_percentage(product),
-           'non_sale_price': get_non_sale_price(product),
-           'brand': get_brand(product),
-           'image_src': get_image_src(product),
-           'article': get_article(product),
-           'name': get_name(product),
-           'popularity': product_position + 1 + 36 * (current_page_number - 1)}
-    product_url = f"https://my-shop.ru/shop/product/{row['article']}.html"
+    brand = get_brand(product)
+    lower_price = get_lower_price(product)
+    non_sale_price = get_non_sale_price(product)
+    sale_percentage = get_sale_percentage(product)
+    article = get_article(product)
+    popularity = product_position + 1 + 36 * (current_page_number - 1)
+    image_src = get_image_src(product)
+    name = get_name(product)
+    product_url = f"https://my-shop.ru/shop/product/{article}.html"
     json_data = get_json_data(product_url)
-    row['series'] = get_series(json_data)
-    row['ISBN'] = get_isbn(json_data)
+    series = get_series(json_data)
+    isbn = get_isbn(json_data)
+    row = (brand, name, series, non_sale_price, sale_percentage, lower_price, popularity, image_src,
+           article, isbn)
     return row
 
 
@@ -146,13 +106,13 @@ def parse_page(base_url, current_page_number, save_option, table_name=''):
     json_data = get_json_data(page_url)
     for i in range(len(json_data['products'])):
         row = get_product_info(json_data['products'][i], current_page_number, i)
-        save_row(row, table_name, save_option)
+        save_row(row, table_name, save_option, myshop_table_structure)
 
 
 def run_parser(url, save_option):
     table_flag = False
     if save_option == save_options['.db']:
-        table_name = create_table()
+        table_name = create_table(myshop_table_structure)
         table_flag = True
     page_amount = get_page_amount(url)
     for i in range(1, page_amount + 1):

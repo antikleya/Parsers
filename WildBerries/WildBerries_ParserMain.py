@@ -1,46 +1,7 @@
-import sqlite3
-
 from bs4 import BeautifulSoup
 from requests import get
-from datetime import datetime
-from static import space_delete
-
-
-def db_save(row, table_name):
-    connection = sqlite3.connect('../ParsingResults.db')
-    cursor = connection.cursor()
-    cursor.execute(f"INSERT or REPLACE INTO {table_name} VALUES (?,?,?,?,?,?,?,?,?,?)",
-                   (row['brand'], row['name'], row['non_sale_price'], row['sale_percentage'], row['lower_price'],
-                    row['popularity'], row['rating'], row['review_amount'], row['image_src'], row['article']))
-    connection.commit()
-    connection.close()
-
-
-save_options = {'.db': db_save}
-
-
-def create_table():
-    date = datetime.today().strftime('%d_%m_%Y_%H_%M')
-    table_name = f'WildBerries_{date}'
-    connection = sqlite3.connect('../ParsingResults.db')
-    cursor = connection.cursor()
-    cursor.execute(f"""CREATE TABLE {table_name} (
-            Брэнд                  STRING,
-            Название               STRING,
-            Цена                   STRING,
-            Скидка                 STRING,
-            Итого                  STRING,
-            [Популярность рейтинг] STRING,    
-            Рейтинг                STRING,
-            Отзывы                 STRING,
-            Тамбнейл               STRING,
-            Артикул                STRING UNIQUE
-                                          NOT NULL
-        );
-        """)
-    connection.commit()
-    connection.close()
-    return table_name
+from core import space_delete, save_row, save_options, create_table
+from settings import wildberries_table_structure
 
 
 def get_elements(url):
@@ -126,9 +87,21 @@ def get_image_src(element):
     return 'https:' + image_src
 
 
-def save_row(row, table_name, save_option):
-    if save_option == save_options['.db']:
-        save_option(row, table_name)
+def get_product_info(element, current_page_number, i):
+    brand = get_brand(element)
+    lower_price = get_lower_price(element)
+    non_sale_price = get_non_sale_price(element)
+    rating = get_rating(element)
+    sale_percentage = get_sale_percentage(element)
+    review_amount = get_review_amount(element)
+    article = get_article(element)
+    popularity = i + 1 + 100 * (current_page_number - 1)
+    image_src = get_image_src(element)
+    product_url = f'https://www.wildberries.ru/catalog/{article}/detail.aspx'
+    name = get_name(product_url)
+    row = (brand, name, non_sale_price, sale_percentage, lower_price, popularity, rating, review_amount,
+           image_src, article)
+    return row
 
 
 def parse_page(base_url, current_page_number, save_option, table_name=''):
@@ -140,24 +113,14 @@ def parse_page(base_url, current_page_number, save_option, table_name=''):
     print(url)
     elements = get_elements(url)
     for i in range(len(elements)):
-        row = {'lower_price': get_lower_price(elements[i]),
-               'non_sale_price': get_non_sale_price(elements[i]),
-               'rating': get_rating(elements[i]),
-               'sale_percentage': get_sale_percentage(elements[i]),
-               'review_amount': get_review_amount(elements[i]),
-               'article': get_article(elements[i]),
-               'popularity': i + 1 + 100 * (current_page_number - 1),
-               'brand': get_brand(elements[i]),
-               'image_src': get_image_src(elements[i])}
-        product_url = f'https://www.wildberries.ru/catalog/{row["article"]}/detail.aspx'
-        row['name'] = get_name(product_url)
-        save_row(row, table_name, save_option)
+        row = get_product_info(elements[i], current_page_number, i)
+        save_row(row, table_name, save_option, wildberries_table_structure)
 
 
 def run_parser(url, save_option):
     table_flag = False
     if save_option == save_options['.db']:
-        table_name = create_table()
+        table_name = create_table(wildberries_table_structure)
         table_flag = True
     page_amount = get_page_amount(url)
     for i in range(1, page_amount + 1):

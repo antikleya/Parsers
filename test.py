@@ -1,4 +1,4 @@
-from WildBerries import get_name
+from core import get_str_table_struct
+from settings import wildberries_table_structure
 
-
-print(get_name('https://www.wildberries.ru/catalog/21644095/detail.aspx'))
+print(get_str_table_struct(wildberries_table_structure))
