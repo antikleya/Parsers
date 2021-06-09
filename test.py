@@ -1,4 +1,0 @@
-from core import get_str_table_struct
-from settings import wildberries_table_structure
-
-print(get_str_table_struct(wildberries_table_structure))
