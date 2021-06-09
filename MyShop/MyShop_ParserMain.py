@@ -9,7 +9,7 @@ temp_url = 'https://my-shop.ru/shop/producer/149/sort/b/page/'
 
 def get_lower_price(product):
     """
-    Gets a discounted(if on sale) price of the given product
+    Gets a discounted(if on sale) price of a given product
 
     :param product: Must be a correct json of product information
     :return: Price in a format convertible into int
@@ -184,7 +184,7 @@ def get_product_info(product, current_page_number, product_position):
 
     :param product: Must be a correct json of product information
     :param current_page_number:
-    :param product_position: Position of the given product on the page. Indexes stars from 0
+    :param product_position: Position of the given product on the page. Indexes start from 0
     :return: Product information in the same order as in database
     :rtype: tuple
     """
@@ -208,7 +208,7 @@ def get_product_info(product, current_page_number, product_position):
 
 def parse_page(base_url, current_page_number, save_option, table_name=''):
     """
-    Parses all products in the given page
+    Parses all products on the given page
 
     :param base_url: Must be a url in the form of 'https://my-shop.ru/*/page'
     :param current_page_number:
@@ -232,7 +232,7 @@ def run_parser(url, save_option):
 
     :param url: Must be a url in the form of 'https://my-shop.ru/*/page'
     :param save_option: Must be a supported save option from 'save_options' dict
-    :return: 
+    :return:
     """
 
     table_flag = False
