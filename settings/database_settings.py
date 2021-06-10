@@ -19,3 +19,5 @@ myshop_table_structure = [('Брэнд', 'STRING', ''),
                           ('Тамбнейл', 'STRING', ''),
                           ('Артикул', 'STRING', ' UNIQUE NOT NULL'),
                           ('ISBN', 'STRING', '')]
+
+detmir_table_structure = []

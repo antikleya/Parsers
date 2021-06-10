@@ -1,0 +1,67 @@
+import requests
+from bs4 import BeautifulSoup
+import nordvpn_switcher as ns
+from settings import DetMir_headers, detmir_table_structure
+from random_user_agent.user_agent import UserAgent
+from core import save_row, save_options
+import json
+
+user_agent_rotator = UserAgent()
+
+
+def get_new_session():
+    ns.rotate_VPN()
+    session = requests.Session()
+    session.headers = DetMir_headers
+    user = user_agent_rotator.get_random_user_agent()
+    session.headers['User-Agent'] = user
+    session.get('https://detmir.ru')
+    return session
+
+
+def get_json_data(url, session):
+    """
+    Gets initial json data of the given page
+
+    :param url: Must be a correct link to a page with product list or an individual product page on my-shop.ru
+    :param session: requests.Session object of the current session
+    :return: Page data converted into python structure
+    :rtype: dict
+    """
+
+    response = session.get(url).text
+    soup = BeautifulSoup(response, 'lxml')
+
+    json_text = str(soup.find('script', type_='application/ld+json'))
+    json_text = json_text[str.find(json_text, '{'):str.rfind(json_text, "</script>")]
+    json_data = json.loads(json_text)
+    return json_data
+
+
+def parse_page(base_url, current_page_number, save_option, table_name=''):
+    """
+    Parses all products on the given page
+
+    :param base_url: Must be a url in the form of 'https://my-shop.ru/*/page'
+    :param current_page_number:
+    :param save_option: Must be a supported save option from 'save_options' dict
+    :param table_name: If saving into sql db, must be a name of an existing table in the database
+    :return:
+    """
+
+    pass
+    # page_url = get_url(base_url, current_page_number)
+    # print(page_url)
+    # json_data = get_json_data(page_url)
+    # for i in range(len(json_data['products'])):
+    #     row = get_product_info(json_data['products'][i], current_page_number, i)
+    #     save_row(row, table_name, save_option, detmir_table_structure)
+
+
+ns.initialize_VPN(save=1, area_input=['complete rotation'], stored_settings=1)
+
+temp_session = get_new_session()
+json_data = get_json_data(url='https://www.detmir.ru/catalog/index/name/dummy/', session=temp_session)
+print(json_data)
+
+ns.terminate_VPN()
