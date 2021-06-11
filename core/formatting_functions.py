@@ -28,6 +28,21 @@ def get_str_table_struct(table_struct):
         str_table_struct += table_struct[i][0] + ' '*(30 - len(table_struct[i][0]) - len(table_struct[i][1])) \
                             + table_struct[i][1] + table_struct[i][2] + ',\n'
     i = length - 1
-    str_table_struct += table_struct[i][0] + ' '*(30 - len(table_struct[i][0]) - len(table_struct[i][1])) \
-                        + table_struct[i][1] + table_struct[i][2]
+    str_table_struct += table_struct[i][0] + ' '*(30 - len(table_struct[i][0]) - len(table_struct[i][1])) +\
+                        table_struct[i][1] + table_struct[i][2]
     return str_table_struct
+
+
+def get_new_headers(headers, user_agent_rotator):
+    """
+    Inserts a random User-Agent into passed headers
+
+    :param headers: Session headers
+    :param user_agent_rotator:
+    :return: new headers
+    :rtype: dict
+    """
+
+    new_user = user_agent_rotator.get_random_user_agent()
+    headers['User-Agent'] = new_user
+    return headers
