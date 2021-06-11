@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 # import nordvpn_switcher as ns
 from settings import DetMir_headers, detmir_table_structure
 from random_user_agent.user_agent import UserAgent
-from core import save_row, save_options, write_dict, get_new_session, get_new_headers
+from core import save_row, save_options, get_new_session, get_new_headers, create_table, write_dict
 import json
 
 user_agent_rotator = UserAgent()
@@ -165,6 +165,11 @@ def get_availability(product):
     return availability
 
 
+def get_url(base_url, current_page_number):
+    url = f'{base_url}page/{current_page_number}/'
+    return url
+
+
 def get_product_info(product, current_page_number, product_position):
     """
     Gets all required information on a given product
@@ -196,20 +201,44 @@ def parse_page(base_url, current_page_number, save_option, table_name=''):
     """
     Parses all products on the given page
 
-    :param base_url: Must be a url in the form of 'https://my-shop.ru/*/page'
+    :param base_url: Must be a url in the form of 'https://www.detmir.ru/*/'
     :param current_page_number:
     :param save_option: Must be a supported save option from 'save_options' dict
     :param table_name: If saving into sql db, must be a name of an existing table in the database
     :return:
     """
 
-    pass
-    # page_url = get_url(base_url, current_page_number)
-    # print(page_url)
-    # json_data = get_json_data(page_url)
-    # for i in range(len(json_data['products'])):
-    #     row = get_product_info(json_data['products'][i], current_page_number, i)
-    #     save_row(row, table_name, save_option, detmir_table_structure)
+    page_url = get_url(base_url, current_page_number)
+    print(page_url)
+    headers = get_new_headers(DetMir_headers, user_agent_rotator)
+    session = get_new_session('https://detmir.ru', headers)
+    json_data = get_json_data(url=page_url, session=session)
+    for i in range(len(json_data['catalog']['data']['items'])):
+        row = get_product_info(json_data['catalog']['data']['items'][i], current_page_number, i)
+        save_row(row, table_name, save_option, detmir_table_structure)
+
+
+def run_parser(url, save_option):
+    """
+    Main function of the parser. Gets all products information from the given list and saves it according to
+    the chosen save option
+
+    :param url: Must be a url in the form of 'https://www.detmir.ru/*/'
+    :param save_option: Must be a supported save option from 'save_options' dict
+    :return:
+    """
+
+    table_flag = False
+    if save_option == save_options['.db']:
+        table_name = create_table(detmir_table_structure, 'MyShop')
+        table_flag = True
+    page_amount = get_page_amount(url)
+    for i in range(1, page_amount + 1):
+        if table_flag:
+            parse_page(url, i, save_option, table_name)
+        else:
+            parse_page(url, i, save_option)
+    input('Нажмите enter для выхода: ')
 
 
 if __name__ == '__main__':
@@ -221,7 +250,5 @@ if __name__ == '__main__':
                               session=session)
     # # print(json_data['catalog']['data'].keys())
     # # write_dict(json_data['catalog']['data']['items'][0])
-    item = json_data['catalog']['data']['items'][0]
-    print(get_product_info(item, 1, 0))
-    # write_dict(data)
+    write_dict(json_data)
     # ns.terminate_VPN()
