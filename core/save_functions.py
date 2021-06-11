@@ -28,18 +28,19 @@ def db_save(row, table_name, column_number):
 save_options = {'.db': db_save}
 
 
-def create_table(table_structure):
+def create_table(table_structure, shop_name):
     """
     Makes a table for the current parse from the given table structure
 
     :param table_structure: A list of fields in a format of (name, type, modifiers).
     If modifiers are passed they must start with a space
+    :param shop_name: Name of the target shop
     :return: table name
     :rtype: str
     """
 
     date = datetime.today().strftime('%d_%m_%Y_%H_%M')
-    table_name = f'WildBerries_{date}'
+    table_name = f'{shop_name}_{date}'
     connection = sqlite3.connect('../ParsingResults.db')
     cursor = connection.cursor()
     str_table_structure = get_str_table_struct(table_structure)

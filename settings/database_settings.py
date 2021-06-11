@@ -20,4 +20,15 @@ myshop_table_structure = [('Брэнд', 'STRING', ''),
                           ('Артикул', 'STRING', ' UNIQUE NOT NULL'),
                           ('ISBN', 'STRING', '')]
 
-detmir_table_structure = []
+detmir_table_structure = [('Брэнд', 'STRING', ''),
+                          ('Название', 'STRING', ''),
+                          ('Цена', 'STRING', ''),
+                          ('Скидка', 'STRING', ''),
+                          ('Итого', 'STRING', ''),
+                          ('Популярность', 'STRING', ''),
+                          ('Рейтинг', 'STRING', ''),
+                          ('Отзывы', 'STRING', ''),
+                          ('Тамбнейл', 'STRING', ''),
+                          ('Код товара на сайте', 'STRING', ' UNIQUE NOT NULL'),
+                          ('Артикул', 'STRING', ''),
+                          ('Наличие', 'STRING', '')]

@@ -236,7 +236,7 @@ def run_parser(url, save_option):
 
     table_flag = False
     if save_option == save_options['.db']:
-        table_name = create_table(wildberries_table_structure)
+        table_name = create_table(wildberries_table_structure, 'WildBerries')
         table_flag = True
     page_amount = get_page_amount(url)
     for i in range(1, page_amount + 1):
