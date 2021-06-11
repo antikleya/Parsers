@@ -1,6 +1,7 @@
 from datetime import datetime
 import sqlite3
-from core import return_codes, get_str_table_struct
+from .constants import return_codes
+from .formatting_functions import get_str_table_struct
 
 
 def db_save(row, table_name, column_number):

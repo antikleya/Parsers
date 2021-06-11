@@ -3,3 +3,4 @@ test.py
 ParsingResults.db
 *__pycache__
 .idea/
+output.txt
