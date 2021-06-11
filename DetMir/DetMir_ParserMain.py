@@ -166,8 +166,35 @@ def get_availability(product):
 
 
 def get_url(base_url, current_page_number):
+    """
+    Makes a concrete page url from base url and page number
+
+    :param base_url: Must be a url in the form of 'https://www.detmir.ru/*/'
+    :param current_page_number:
+    :return: page url
+    :rtype: str
+    """
+
     url = f'{base_url}page/{current_page_number}/'
     return url
+
+
+def get_page_amount(url, session):
+    """
+    Gets amount of product pages
+
+    :param url: first page url
+    :param session: requests.Session object of the current session
+    :return: page amount
+    :rtype: int
+    """
+
+    json_data = get_json_data(url, session)
+    product_amount = int(json_data['catalog']['data']['meta']['length'])
+    page_amount = product_amount // 30
+    if product_amount % 30 != 0:
+        page_amount += 1
+    return page_amount
 
 
 def get_product_info(product, current_page_number, product_position):
@@ -197,58 +224,57 @@ def get_product_info(product, current_page_number, product_position):
     return row
 
 
-def parse_page(base_url, current_page_number, save_option, table_name=''):
+def parse_page(base_url, current_page_number, save_option, session, table_name=''):
     """
     Parses all products on the given page
 
     :param base_url: Must be a url in the form of 'https://www.detmir.ru/*/'
     :param current_page_number:
     :param save_option: Must be a supported save option from 'save_options' dict
+    :param session: requests.Session object of the current session
     :param table_name: If saving into sql db, must be a name of an existing table in the database
     :return:
     """
 
     page_url = get_url(base_url, current_page_number)
     print(page_url)
-    headers = get_new_headers(DetMir_headers, user_agent_rotator)
-    session = get_new_session('https://detmir.ru', headers)
     json_data = get_json_data(url=page_url, session=session)
     for i in range(len(json_data['catalog']['data']['items'])):
         row = get_product_info(json_data['catalog']['data']['items'][i], current_page_number, i)
         save_row(row, table_name, save_option, detmir_table_structure)
 
 
-def run_parser(url, save_option):
+def run_parser(base_url, save_option):
     """
     Main function of the parser. Gets all products information from the given list and saves it according to
     the chosen save option
 
-    :param url: Must be a url in the form of 'https://www.detmir.ru/*/'
+    :param base_url: Must be a url in the form of 'https://www.detmir.ru/*/'
     :param save_option: Must be a supported save option from 'save_options' dict
     :return:
     """
 
+    url = get_url(base_url, 1)
+    headers = get_new_headers(DetMir_headers, user_agent_rotator)
+    session = get_new_session(url=url, headers=headers)
+
     table_flag = False
     if save_option == save_options['.db']:
-        table_name = create_table(detmir_table_structure, 'MyShop')
+        table_name = create_table(detmir_table_structure, 'DetMir')
         table_flag = True
-    page_amount = get_page_amount(url)
+
+    page_amount = get_page_amount(url, session)
     for i in range(1, page_amount + 1):
         if table_flag:
-            parse_page(url, i, save_option, table_name)
+            parse_page(base_url, i, save_option, session, table_name)
         else:
-            parse_page(url, i, save_option)
+            parse_page(base_url, i, save_option, session)
+
     input('Нажмите enter для выхода: ')
 
 
 if __name__ == '__main__':
 
     # ns.initialize_VPN(save=1, area_input=['complete rotation'], stored_settings=1)
-    headers = get_new_headers(headers=DetMir_headers, user_agent_rotator=user_agent_rotator)
-    session = get_new_session(url='https://detmir.ru', headers=headers)
-    json_data = get_json_data(url='https://www.detmir.ru/catalog/index/name/sortforbrand/brand/13201/page/1/',
-                              session=session)
-    # # print(json_data['catalog']['data'].keys())
-    # # write_dict(json_data['catalog']['data']['items'][0])
-    write_dict(json_data)
+    run_parser('https://www.detmir.ru/catalog/index/name/sortforbrand/brand/13201/', save_options['.db'])
     # ns.terminate_VPN()
