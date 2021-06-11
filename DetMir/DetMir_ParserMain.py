@@ -55,8 +55,75 @@ def get_lower_price(product):
 
 
 def get_non_sale_price(product):
+    """
+    Gets product's price before sale, if on sale. Otherwise gets current price.
+
+    :param product: Must be a correct json of product information
+    :return: non-sale price
+    :rtype: int
+    """
+
     if product['old_price']:
-        pass
+        old_price = product['old_price']['price']
+        return old_price
+    return get_lower_price(product)
+
+
+def get_sale_percentage(lower_price, non_sale_price):
+    """
+    Calculates sale percentage from prices
+
+    :param lower_price: current product price
+    :param non_sale_price: product's price before sale
+    :return: sale percentage
+    :rtype: int
+    """
+
+    sale_percentage = round((1-(lower_price/non_sale_price))*100)
+    return sale_percentage
+
+
+def get_rating(product):
+    """
+    Gets rating of a product
+
+    :param product: Must be a correct json of product information
+    :return: rating
+    :rtype: str
+    """
+
+    rating = str(product['rating'])
+    return rating
+
+
+def get_review_amount(product):
+    """
+    Gets the amount of reviews for a given product
+
+    :param product: Must be a correct json of product information
+    :return: review amount
+    :rtype: int
+    """
+
+    review_amount = product['review_count']
+    return review_amount
+
+
+def get_image_src(product):
+    """
+    Gets image links of a given products
+
+    :param product: Must be a correct json of product information
+    :return: image links
+    :rtype: str
+    """
+
+    image_src = ''
+    for picture in product['pictures']:
+        image_src += picture['original'] + ', '
+    if image_src:
+        image_src = image_src[:-2]
+    return image_src
 
 
 def get_product_info(product, current_page_number, product_position):
@@ -73,11 +140,15 @@ def get_product_info(product, current_page_number, product_position):
     # brand = get_brand(product)
     name = get_name(product)
     lower_price = get_lower_price(product)
-    # non_sale_price = get_non_sale_price(product)
-    # sale_percentage = get_sale_percentage(product)
+    non_sale_price = get_non_sale_price(product)
+    sale_percentage = get_sale_percentage(lower_price, non_sale_price)
+    popularity = product_position + 1 + 30 * (current_page_number - 1)
+    rating = get_rating(product)
+    review_amount = get_review_amount(product)
+    image_src = get_image_src(product)
     # article = get_article(product)
-    # popularity = product_position + 1 + 36 * (current_page_number - 1)
-    # image_src = get_image_src(product)
+    #
+    #
     #
     # product_url = f"https://my-shop.ru/shop/product/{article}.html"
     # json_data = get_json_data(product_url)
@@ -115,9 +186,10 @@ if __name__ == '__main__':
     session = get_new_session(url='https://detmir.ru', headers=headers)
     json_data = get_json_data(url='https://www.detmir.ru/catalog/index/name/sortforbrand/brand/13201/page/1/',
                               session=session)
-    # print(json_data['catalog']['data'].keys())
-    # write_dict(json_data['catalog']['data']['items'][0])
-    print(get_lower_price(json_data['catalog']['data']['items'][0]))
+    # # print(json_data['catalog']['data'].keys())
+    # # write_dict(json_data['catalog']['data']['items'][0])
+    item = json_data['catalog']['data']['items'][0]
     # write_dict(data)
 
+    print(type(get_review_amount(item)))
     # ns.terminate_VPN()
