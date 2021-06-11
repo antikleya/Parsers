@@ -126,6 +126,45 @@ def get_image_src(product):
     return image_src
 
 
+def get_product_code(product):
+    """
+    Gets code of a given product on the site
+
+    :param product: Must be a correct json of product information
+    :return: product code
+    :rtype: str
+    """
+
+    product_code = product['code']
+    return product_code
+
+
+def get_article(product):
+    """
+    Gets article of a given product
+
+    :param product: Must be a correct json of product information
+    :return: article
+    :rtype: str
+    """
+
+    article = product['article']
+    return article
+
+
+def get_availability(product):
+    """
+    Gets warehouse codes where the given product is available
+
+    :param product: Must be a correct json of product information
+    :return: warehouse codes
+    :rtype: str
+    """
+
+    availability = ', '.join(product['available']['online']['warehouse_codes'])
+    return availability
+
+
 def get_product_info(product, current_page_number, product_position):
     """
     Gets all required information on a given product
@@ -137,26 +176,20 @@ def get_product_info(product, current_page_number, product_position):
     :rtype: tuple
     """
 
-    # brand = get_brand(product)
     name = get_name(product)
-    lower_price = get_lower_price(product)
     non_sale_price = get_non_sale_price(product)
+    lower_price = get_lower_price(product)
     sale_percentage = get_sale_percentage(lower_price, non_sale_price)
     popularity = product_position + 1 + 30 * (current_page_number - 1)
     rating = get_rating(product)
     review_amount = get_review_amount(product)
     image_src = get_image_src(product)
-    # article = get_article(product)
-    #
-    #
-    #
-    # product_url = f"https://my-shop.ru/shop/product/{article}.html"
-    # json_data = get_json_data(product_url)
-    # series = get_series(json_data)
-    # isbn = get_isbn(json_data)
-    # row = (brand, name, series, non_sale_price, sale_percentage, lower_price, popularity, image_src,
-    #        article, isbn)
-    # return row
+    product_code = get_product_code(product)
+    article = get_article(product)
+    availability = get_availability(product)
+    row = (name, non_sale_price, sale_percentage, lower_price, popularity, rating, review_amount, image_src,
+           product_code, article, availability)
+    return row
 
 
 def parse_page(base_url, current_page_number, save_option, table_name=''):
@@ -189,7 +222,6 @@ if __name__ == '__main__':
     # # print(json_data['catalog']['data'].keys())
     # # write_dict(json_data['catalog']['data']['items'][0])
     item = json_data['catalog']['data']['items'][0]
+    print(get_product_info(item, 1, 0))
     # write_dict(data)
-
-    print(type(get_review_amount(item)))
     # ns.terminate_VPN()
