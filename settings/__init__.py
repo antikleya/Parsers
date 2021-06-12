@@ -1,2 +1,2 @@
 from .database_settings import *
-from .header_settings import DetMir_headers
+from .header_settings import DetMir_headers, YandexMarket_headers
