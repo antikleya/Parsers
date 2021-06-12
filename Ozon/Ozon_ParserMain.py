@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
-from core import write_dict, get_new_headers, get_new_session
+from core import write_dict, get_new_headers, get_new_session, save_options, save_row, create_table
 from random_user_agent.user_agent import UserAgent
-from settings import Ozon_headers
+from settings import Ozon_headers, ozon_table_structure
 from bs4 import BeautifulSoup
 import json
 # import nordvpn_switcher as ns
-
-# ns.initialize_VPN(save=1)
+# ns.initialize_VPN(save=1, area_input=['complete rotation'])
 # ns.rotate_VPN()
+
+temp_url = 'https://www.ozon.ru/publisher/ayris-press-857416/'
 
 
 def get_json_data(url, session):
@@ -20,7 +21,7 @@ def get_json_data(url, session):
     :rtype: dict
     """
 
-    response = session.get(url).text
+    response = session.get(url=url, timeout=10).text
     soup = BeautifulSoup(response, 'lxml')
     json_text = soup.find('div', {'id': 'state-searchResultsV2-312617-default-1'})
     if not json_text:
@@ -133,7 +134,7 @@ def get_product_code(product):
 
     :param product: Must be a correct json of product information
     :return: product code
-    :rtype: str
+    :rtype: int
     """
 
     product_code = product['cellTrackingInfo']['id']
@@ -170,6 +171,38 @@ def get_series():
     return ''
 
 
+def get_url(base_url, current_page_number):
+    """
+    Makes a concrete page url from base url and page number
+
+    :param base_url: Must be a url in the form of 'https://www.ozon.ru/*/'
+    :param current_page_number:
+    :return: page url
+    :rtype: str
+    """
+
+    url = f'{base_url}?page={current_page_number}'
+    return url
+
+
+def get_page_amount(url, session):
+    """
+    Gets amount of product pages
+
+    :param url: first page url
+    :param session: requests.Session object of the current session
+    :return: page amount
+    :rtype: int
+    """
+
+    json_data = get_json_data(url, session)
+    product_amount = int(json_data['catalog']['data']['meta']['length'])
+    page_amount = product_amount // 30
+    if product_amount % 30 != 0:
+        page_amount += 1
+    return page_amount
+
+
 def get_product_info(product, current_page_number, product_position):
     """
     Gets all required information on a given product
@@ -199,14 +232,57 @@ def get_product_info(product, current_page_number, product_position):
     return row
 
 
-temp_url = 'https://www.ozon.ru/publisher/ayris-press-857416/?page=1'
-user_agent_rotator = UserAgent()
-headers = get_new_headers(Ozon_headers, user_agent_rotator)
+def parse_page(base_url, current_page_number, save_option, session, table_name=''):
+    """
+    Parses all products on a given page
 
-session = get_new_session('https://www.ozon.ru', headers)
+    :param base_url: Must be a url in the form of 'https://www.ozon.ru/*/'
+    :param current_page_number:
+    :param save_option: Must be a supported save option from 'save_options' dict
+    :param session: requests.Session object of the current session
+    :param table_name: If saving into sql db, must be a name of an existing table in the database
+    :return:
+    """
 
-json_data = get_json_data(temp_url, session)
+    page_url = get_url(base_url, current_page_number)
+    print(page_url)
+    json_data = get_json_data(url=page_url, session=session)
+    for i in range(len(json_data['items'])):
+        row = get_product_info(json_data['items'][i], current_page_number, i)
+        save_row(row, table_name, save_option, ozon_table_structure)
 
-print(get_product_info(json_data['items'][0], 1, 0))
 
-# ns.terminate_VPN()
+def run_parser(base_url, save_option):
+    """
+    Main function of the parser. Gets all products information from the given list and saves it according to
+    the chosen save option
+
+    :param base_url: Must be a url in the form of 'https://www.ozon.ru/*/'
+    :param save_option: Must be a supported save option from 'save_options' dict
+    :return:
+    """
+
+    url = get_url(base_url, 1)
+    headers = get_new_headers(Ozon_headers, user_agent_rotator)
+    session = get_new_session(url=url, headers=headers)
+
+    table_name = ''
+    if save_option == save_options['.db']:
+        table_name = create_table(Ozon_headers, 'Ozon')
+
+    page_amount = get_page_amount(url, session)
+    for i in range(1, page_amount + 1):
+        parse_page(base_url, i, save_option, session, table_name)
+
+    input('Нажмите enter для выхода: ')
+
+
+if __name__ == '__main__':
+    user_agent_rotator = UserAgent()
+    headers = get_new_headers(Ozon_headers, user_agent_rotator)
+    session = get_new_session('https://www.ozon.ru', headers)
+
+    response = session.get(url=temp_url, timeout=10).text
+    soup = BeautifulSoup(response, 'lxml')
+    with open('temp.txt', 'w') as file:
+        file.write(soup.prettify())

@@ -235,16 +235,14 @@ def run_parser(url, save_option):
     :return:
     """
 
-    table_flag = False
+    table_name = ''
     if save_option == save_options['.db']:
         table_name = create_table(myshop_table_structure, 'MyShop')
-        table_flag = True
+
     page_amount = get_page_amount(url)
     for i in range(1, page_amount + 1):
-        if table_flag:
-            parse_page(url, i, save_option, table_name)
-        else:
-            parse_page(url, i, save_option)
+        parse_page(url, i, save_option, table_name)
+
     input('Нажмите enter для выхода: ')
 
 

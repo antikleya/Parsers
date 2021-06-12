@@ -258,17 +258,13 @@ def run_parser(base_url, save_option):
     headers = get_new_headers(DetMir_headers, user_agent_rotator)
     session = get_new_session(url=url, headers=headers)
 
-    table_flag = False
+    table_name = ''
     if save_option == save_options['.db']:
         table_name = create_table(detmir_table_structure, 'DetMir')
-        table_flag = True
 
     page_amount = get_page_amount(url, session)
     for i in range(1, page_amount + 1):
-        if table_flag:
-            parse_page(base_url, i, save_option, session, table_name)
-        else:
-            parse_page(base_url, i, save_option, session)
+        parse_page(base_url, i, save_option, session, table_name)
 
     input('Нажмите enter для выхода: ')
 
