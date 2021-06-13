@@ -1,11 +1,9 @@
 from bs4 import BeautifulSoup
 # import nordvpn_switcher as ns
 from settings import DetMir_headers, detmir_table_structure
-from random_user_agent.user_agent import UserAgent
-from core import save_row, save_options, get_new_session, get_new_headers, create_table, write_dict
+from core import save_row, save_options, get_new_session, get_new_headers, create_table, user_agent_rotator
 import json
 
-user_agent_rotator = UserAgent()
 temp_url = 'https://www.detmir.ru/catalog/index/name/sortforbrand/brand/13201/page/1/'
 
 

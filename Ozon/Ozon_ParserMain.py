@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-from core import write_dict, get_new_headers, get_new_session, save_options, save_row, create_table
-from random_user_agent.user_agent import UserAgent
+from core import user_agent_rotator, get_new_headers, get_new_session, save_options, save_row, create_table, \
+    get_str_table_struct
 from settings import Ozon_headers, ozon_table_structure
 from bs4 import BeautifulSoup
 import json
+import re
 # import nordvpn_switcher as ns
 # ns.initialize_VPN(save=1, area_input=['complete rotation'])
 # ns.rotate_VPN()
@@ -195,12 +196,10 @@ def get_page_amount(url, session):
     :rtype: int
     """
 
-    json_data = get_json_data(url, session)
-    product_amount = int(json_data['catalog']['data']['meta']['length'])
-    page_amount = product_amount // 30
-    if product_amount % 30 != 0:
-        page_amount += 1
-    return page_amount
+    response = session.get(url=url, timeout=2).text
+    page_amount = re.search('''"totalPages":\d+''', response).group()
+    page_amount = page_amount[page_amount.find(':') + 1:]
+    return int(page_amount)
 
 
 def get_product_info(product, current_page_number, product_position):
@@ -268,7 +267,7 @@ def run_parser(base_url, save_option):
 
     table_name = ''
     if save_option == save_options['.db']:
-        table_name = create_table(Ozon_headers, 'Ozon')
+        table_name = create_table(ozon_table_structure, 'Ozon')
 
     page_amount = get_page_amount(url, session)
     for i in range(1, page_amount + 1):
@@ -278,11 +277,4 @@ def run_parser(base_url, save_option):
 
 
 if __name__ == '__main__':
-    user_agent_rotator = UserAgent()
-    headers = get_new_headers(Ozon_headers, user_agent_rotator)
-    session = get_new_session('https://www.ozon.ru', headers)
-
-    response = session.get(url=temp_url, timeout=10).text
-    soup = BeautifulSoup(response, 'lxml')
-    with open('temp.txt', 'w') as file:
-        file.write(soup.prettify())
+    run_parser('https://www.ozon.ru/publisher/ayris-press-857416/', save_options['.db'])
