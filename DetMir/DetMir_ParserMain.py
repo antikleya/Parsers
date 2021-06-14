@@ -159,8 +159,14 @@ def get_availability(product):
     :rtype: str
     """
 
-    availability = ', '.join(product['available']['online']['warehouse_codes'])
-    return availability
+    if not(product['available']['online']['warehouse_codes'] or product['available']['offline']['stores']):
+        return 'OutOfStock'
+    elif product['available']['online']['warehouse_codes'] and product['available']['offline']['stores']:
+        return 'InStock'
+    elif product['available']['online']['warehouse_codes']:
+        return 'OnlineOnly'
+    else:
+        return 'InStoresOnly'
 
 
 def get_url(base_url, current_page_number):
