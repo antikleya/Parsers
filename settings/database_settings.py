@@ -33,7 +33,6 @@ detmir_table_structure = [('Название', 'STRING', ''),
                           ('Наличие', 'STRING', '')]
 
 ozon_table_structure = [('Название', 'STRING', ''),
-                        ('Серия', 'STRING', ''),
                         ('Цена', 'STRING', ''),
                         ('Скидка', 'STRING', ''),
                         ('Итого', 'STRING', ''),

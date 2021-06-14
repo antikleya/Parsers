@@ -168,10 +168,6 @@ def get_availability(product):
     return availability
 
 
-def get_series():
-    return ''
-
-
 def get_url(base_url, current_page_number):
     """
     Makes a concrete page url from base url and page number
@@ -214,7 +210,6 @@ def get_product_info(product, current_page_number, product_position):
     """
 
     name = get_name(product)
-    series = get_series()
     non_sale_price = get_non_sale_price(product)
     sale_percentage = get_sale_percentage(product)
     lower_price = get_lower_price(product)
@@ -226,7 +221,7 @@ def get_product_info(product, current_page_number, product_position):
     product_code = get_product_code(product)
     article = get_article(product)
     availability = get_availability(product)
-    row = (name, series, non_sale_price, sale_percentage, lower_price, popularity, product_type, rating, review_amount,
+    row = (name, non_sale_price, sale_percentage, lower_price, popularity, product_type, rating, review_amount,
            image_src, product_code, article, availability)
     return row
 
@@ -277,4 +272,9 @@ def run_parser(base_url, save_option):
 
 
 if __name__ == '__main__':
-    run_parser('https://www.ozon.ru/publisher/ayris-press-857416/', save_options['.db'])
+    # run_parser('https://www.ozon.ru/publisher/ayris-press-857416/', save_options['.db'])
+    headers = get_new_headers(Ozon_headers, user_agent_rotator)
+    session = get_new_session(temp_url, headers)
+
+    response = session.get('https://www.ozon.ru/publisher/ayris-press-857416/', timeout=4).text
+    print(response)
