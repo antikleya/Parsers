@@ -1,4 +1,3 @@
-venv/
 ParsingResults.db
 *__pycache__
 .idea/

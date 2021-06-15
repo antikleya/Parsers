@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import nordvpn_switcher as ns
 from random_user_agent.user_agent import UserAgent
 from settings import ChitaiGorod_headers
